@@ -1,0 +1,6 @@
+{
+  "name": "Квант-Аналитик: AI Сигналы & Алготрейдинг",
+  "description": "Профессиональный квантовый терминал криптовалютного анализа и генерации алгоритмических торговых сигналов с жестким риск-менеджментом.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
