@@ -17,7 +17,7 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 const BINANCE_API_URL = process.env.BINANCE_API_URL || 'https://api.binance.com';
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 // Tried in order when the primary model is overloaded or rate-limited
-const GEMINI_FALLBACK_MODELS = (process.env.GEMINI_FALLBACK_MODELS || 'gemini-3.5-flash,gemini-3.8-flash,gemini-3.7-flash')
+const GEMINI_FALLBACK_MODELS = (process.env.GEMINI_FALLBACK_MODELS || 'gemini-3.5-flash,gemini-3-flash-preview,gemini-3.8-flash,gemini-3.7-flash,gemini-3.5-flash-lite,gemini-flash-lite-latest')
   .split(',')
   .map((m) => m.trim())
   .filter((m) => m && m !== GEMINI_MODEL);
@@ -370,6 +370,13 @@ ${customContext ? `5. ДОПОЛНИТЕЛЬНЫЙ КОНТЕКСТ ТРЕЙДЕ
     });
   } catch (error: any) {
     console.error('Error generating signal:', error);
+    if (RETRYABLE_GEMINI_STATUSES.has(error?.status)) {
+      res.status(503).json({
+        error: 'Ошибка при генерации квантового сигнала',
+        details: 'Все модели Gemini сейчас перегружены или исчерпан лимит запросов ключа. Попробуйте через минуту.',
+      });
+      return;
+    }
     res.status(500).json({
       error: 'Ошибка при генерации квантового сигнала',
       details: error.message,
