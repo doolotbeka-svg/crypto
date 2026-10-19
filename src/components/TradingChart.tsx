@@ -15,9 +15,11 @@ export const TradingChart: React.FC<TradingChartProps> = ({
   candles,
   symbol,
   timeframe,
-  signal,
+  signal: rawSignal,
   onTimeframeChange,
 }) => {
+  // HOLD means no trade, so its levels are not drawn on the chart
+  const signal = rawSignal?.type === 'HOLD (ВНЕ РЫНКА)' ? null : rawSignal;
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [showEMA, setShowEMA] = useState(true);
   const [showBB, setShowBB] = useState(true);
