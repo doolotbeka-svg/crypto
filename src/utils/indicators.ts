@@ -1,4 +1,4 @@
-import { Candle, IndicatorMetrics } from '../types/quant';
+import type { Candle, IndicatorMetrics } from '../types/quant';
 
 /**
  * Calculates Simple Moving Average

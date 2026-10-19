@@ -3,9 +3,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
-import { Candle, IndicatorMetrics, MarketSummary } from './src/types/quant';
-import { computeIndicatorMetrics } from './src/utils/indicators';
-import { parseQuantSignalText } from './src/utils/signalParser';
+import type { Candle, IndicatorMetrics, MarketSummary } from './src/types/quant';
+import { computeIndicatorMetrics } from './src/utils/indicators.js';
+import { parseQuantSignalText } from './src/utils/signalParser.js';
 
 dotenv.config();
 
@@ -400,4 +400,9 @@ async function startServer() {
   });
 }
 
-startServer();
+// On Vercel the app is served by api/index.ts and static files come from dist/
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;

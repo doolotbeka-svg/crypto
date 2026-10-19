@@ -1,4 +1,4 @@
-import { ParsedSignal } from '../types/quant';
+import type { ParsedSignal } from '../types/quant';
 
 /**
  * Extracts numeric price value from text strings like "$65,400", "65400 USDT", "64,000 - 64,500"
