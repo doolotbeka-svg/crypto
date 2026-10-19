@@ -16,6 +16,12 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const BINANCE_API_URL = process.env.BINANCE_API_URL || 'https://api.binance.com';
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+// Tried in order when the primary model is overloaded or rate-limited
+const GEMINI_FALLBACK_MODELS = (process.env.GEMINI_FALLBACK_MODELS || 'gemini-3.5-flash,gemini-3.8-flash,gemini-3.7-flash')
+  .split(',')
+  .map((m) => m.trim())
+  .filter((m) => m && m !== GEMINI_MODEL);
+const RETRYABLE_GEMINI_STATUSES = new Set([429, 500, 503, 504]);
 
 app.use(express.json());
 
@@ -333,21 +339,34 @@ ${customContext ? `5. ДОПОЛНИТЕЛЬНЫЙ КОНТЕКСТ ТРЕЙДЕ
 
 Выдай только готовый шаблон без приветствий и лишнего обрамления.`;
 
-    const response = await ai.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: userPrompt,
-      config: {
-        systemInstruction,
-        temperature: 0.2, // Low temperature for deterministic, disciplined quant analysis
-      },
-    });
+    const models = [GEMINI_MODEL, ...GEMINI_FALLBACK_MODELS];
+    let response;
+    let model = GEMINI_MODEL;
+    for (let i = 0; i < models.length; i++) {
+      model = models[i];
+      try {
+        response = await ai.models.generateContent({
+          model,
+          contents: userPrompt,
+          config: {
+            systemInstruction,
+            temperature: 0.2, // Low temperature for deterministic, disciplined quant analysis
+          },
+        });
+        break;
+      } catch (err: any) {
+        if (i === models.length - 1 || !RETRYABLE_GEMINI_STATUSES.has(err?.status)) throw err;
+        console.warn(`Gemini model ${model} unavailable (${err.status}), falling back`);
+      }
+    }
 
-    const rawText = response.text || '';
+    const rawText = response?.text || '';
     const parsedSignal = parseQuantSignalText(rawText, symbol, price);
 
     res.json({
       rawText,
       signal: parsedSignal,
+      model,
     });
   } catch (error: any) {
     console.error('Error generating signal:', error);
