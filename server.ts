@@ -14,6 +14,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
+const BINANCE_API_URL = process.env.BINANCE_API_URL || 'https://api.binance.com';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
 app.use(express.json());
 
@@ -86,7 +88,7 @@ async function fetchBinanceKlines(symbol: string, interval: string, limit = 60):
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4000);
 
-    const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`, {
+    const res = await fetch(`${BINANCE_API_URL}/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`, {
       signal: controller.signal,
       headers: { 'Accept': 'application/json' },
     });
@@ -120,7 +122,7 @@ async function fetchBinanceTicker(symbol: string): Promise<any | null> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
 
-    const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`, {
+    const res = await fetch(`${BINANCE_API_URL}/api/v3/ticker/24hr?symbol=${symbol}`, {
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -332,7 +334,7 @@ ${customContext ? `5. ДОПОЛНИТЕЛЬНЫЙ КОНТЕКСТ ТРЕЙДЕ
 Выдай только готовый шаблон без приветствий и лишнего обрамления.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: GEMINI_MODEL,
       contents: userPrompt,
       config: {
         systemInstruction,
